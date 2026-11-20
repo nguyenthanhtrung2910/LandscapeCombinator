@@ -416,6 +416,14 @@ HMFetcher* UImageDownloader::CreateInitialFetcher(bool bIsUserInitiated, FString
 						return nullptr;
 					}
 				}
+				else if (IsWorldElevation3D())
+				{
+					Layer = TEXT("ArcGISWorldElevation3D");
+					Format = TEXT("lerc");
+					URL2 = TEXT("https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/{z}/{y}/{x}?blankTile=false");
+					bGeoreferenceSlippyTiles2 = true;
+					bMaxY_IsNorth2 = false;
+				}
 				else
 				{
 					Layer = XYZ_Name;
@@ -434,6 +442,7 @@ HMFetcher* UImageDownloader::CreateInitialFetcher(bool bIsUserInitiated, FString
 							ImageSourceKind == EImageSourceKind::MapTiler_Heightmaps ||
 							ImageSourceKind == EImageSourceKind::Mapbox_Heightmaps ||
 							ImageSourceKind == EImageSourceKind::NextZen_Heightmaps,
+							ImageSourceKind == EImageSourceKind::ArcGIS_WorldElevation3D,
 							ImageSourceKind == EImageSourceKind::NextZen_Heightmaps,
 						XYZ_CRS
 					),
@@ -665,7 +674,12 @@ bool UImageDownloader::IsNextZen()
 
 bool UImageDownloader::IsXYZ()
 {
-	return IsMapbox() || IsMapTiler() || IsNextZen() || ImageSourceKind == EImageSourceKind::GenericXYZ;
+	return IsMapbox() || IsMapTiler() || IsNextZen() || IsWorldElevation3D() || ImageSourceKind == EImageSourceKind::GenericXYZ;
+}
+
+bool UImageDownloader::IsWorldElevation3D()
+{
+	return ImageSourceKind == EImageSourceKind::ArcGIS_WorldElevation3D;
 }
 
 bool UImageDownloader::HasMultipleLayers()
@@ -688,7 +702,7 @@ void UImageDownloader::SetSourceParameters()
 
 bool UImageDownloader::AllowsParametersSelection()
 {
-	return IsWMS() || (IsXYZ() && bGeoreferenceSlippyTiles) || ImageSourceKind == EImageSourceKind::Napoli;
+	return IsWMS() || (IsXYZ() && (bGeoreferenceSlippyTiles || IsWorldElevation3D())) || ImageSourceKind == EImageSourceKind::Napoli;
 }
 
 bool UImageDownloader::CanAutoSetResolution()
@@ -1150,6 +1164,11 @@ void UImageDownloader::OnImageSourceChanged(TFunction<void(bool)> OnComplete)
 			if (OnComplete) OnComplete(false);
 			return;
 		}
+		ResetWMSProvider(TArray<FString>(), nullptr, OnComplete);
+	}	
+	else if (IsWorldElevation3D())
+	{
+		CapabilitiesURL.Empty();
 		ResetWMSProvider(TArray<FString>(), nullptr, OnComplete);
 	}
 	else

@@ -12,7 +12,6 @@
 #include "MapboxHelpers/MapboxHelpers.h"
 #include "LCCommon/LCSettings.h"
 
-#include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "HAL/FileManagerGeneric.h"
 #include "Logging/StructuredLog.h"
@@ -51,7 +50,6 @@ bool HMXYZ::OnFetch(FString InputCRS, TArray<FString> InputFiles)
 		));
 		return false;
 	}
-
 	int NumTiles = (MaxX - MinX + 1) * (MaxY - MinY + 1);
 
 	if (bIsUserInitiated && NumTiles >= 100)
@@ -129,6 +127,11 @@ bool HMXYZ::OnFetch(FString InputCRS, TArray<FString> InputFiles)
 					return bAllowInvalidTiles;
 				}
 			}
+			else if (bDecodeLERC)
+			{
+				DecodedFile = FPaths::Combine(DownloadDir, FString::Printf(TEXT("ArcGISWorldElevation3D-%d-%d-%d-decoded.tif"), Zoom, X, Y));
+				if (!MapboxHelpers::DecodeLERC(DownloadFile, DecodedFile, bAllowInvalidTiles, bShowedDialog)) return bAllowInvalidTiles;
+			}
 
 			if (Format.Contains("."))
 			{
@@ -166,6 +169,21 @@ bool HMXYZ::OnFetch(FString InputCRS, TArray<FString> InputFiles)
 				GDALInterface::XYZTileToEPSG3857(X+1, Y+1, Zoom, MaxLong, MinLat);
 
 				FString OutputFile = FPaths::Combine(OutputDir, FileName + ".tif");
+				if (bDecodeLERC)
+				{
+					// LERC's 257 vertex samples span 256 cells; align the outer pixel centers to tile edges.
+					const double HalfSample = (MaxLong - MinLong) / 512.0;
+					if (!GDALInterface::Translate(DecodedFile, OutputFile, {
+						"-of", "GTiff", "-a_srs", "EPSG:3857", "-a_ullr",
+						FString::Printf(TEXT("%.17g"), MinLong - HalfSample),
+						FString::Printf(TEXT("%.17g"), MaxLat + HalfSample),
+						FString::Printf(TEXT("%.17g"), MaxLong + HalfSample),
+						FString::Printf(TEXT("%.17g"), MinLat - HalfSample)
+					})) return bAllowInvalidTiles;
+					UE_LOG(LogImageDownloader, Log, TEXT("Adding file: %s"), *OutputFile);
+					OutputFilesQueue.Enqueue(OutputFile);
+					return true;
+				}
 				if (!GDALInterface::AddGeoreference(DecodedFile, OutputFile, "EPSG:3857", MinLong, MaxLong, MinLat, MaxLat)) return bAllowInvalidTiles;
 
 				UE_LOG(LogImageDownloader, Log, TEXT("Adding file: %s"), *OutputFile);
@@ -194,5 +212,6 @@ bool HMXYZ::OnFetch(FString InputCRS, TArray<FString> InputFiles)
 
 	return bSuccess;
 }
+
 
 #undef LOCTEXT_NAMESPACE

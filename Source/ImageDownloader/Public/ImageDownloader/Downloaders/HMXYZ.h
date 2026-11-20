@@ -12,7 +12,7 @@ public:
 		bool bAllowInvalidTiles0, bool bEnableParallelDownload0,
 		FString Name0, FString Layer0, FString Format0, FString URL0,
 		int Zoom0, int MinX0, int MaxX0, int MinY0, int MaxY0,
-		bool bMaxY_IsNorth0, bool bGeoreferenceSlippyTiles0, bool bDecodeMapbox0,
+		bool bMaxY_IsNorth0, bool bGeoreferenceSlippyTiles0, bool bDecodeMapbox0, bool bDecodeLERC0,
 		bool bUseTerrariumFormula0,
 		FString CRS0)
 	{
@@ -29,6 +29,7 @@ public:
 		bGeoreferenceSlippyTiles = bGeoreferenceSlippyTiles0;
 		CRS = CRS0;
 		bDecodeMapbox = bDecodeMapbox0;
+		bDecodeLERC = bDecodeLERC0;
 		bUseTerrariumFormula = bUseTerrariumFormula0;
 		bAllowInvalidTiles = bAllowInvalidTiles0;
 		bEnableParallelDownload = bEnableParallelDownload0;
@@ -55,6 +56,7 @@ protected:
 	bool bMaxY_IsNorth;
 	bool bGeoreferenceSlippyTiles;
 	bool bDecodeMapbox;
+	bool bDecodeLERC;
 	bool bUseTerrariumFormula;
 	FString CRS;
 };

@@ -73,6 +73,7 @@ enum class EImageSourceKind : uint8
 	Triton_Imagery UMETA(DisplayName = "Triton Imagery (USGS)"),
 	Moon_Elevation UMETA(DisplayName = "Moon Elevation (USGS LOLA)"),
 	Moon_Imagery UMETA(DisplayName = "Moon Imagery (USGS)"),
+	ArcGIS_WorldElevation3D UMETA(DisplayName = "ArcGIS World Elevation 3D (LERC Tiles)"),
 };
 
 UCLASS()
@@ -905,6 +906,9 @@ public:
 
 	UFUNCTION()
 	bool IsXYZ();
+
+	UFUNCTION()
+	bool IsWorldElevation3D();
 
 	UFUNCTION()
 	bool AllowsParametersSelection();
