@@ -16,6 +16,7 @@
 #include "ImageDownloader/Downloaders/HMXYZ.h"
 #include "ImageDownloader/Downloaders/HMNapoli.h"
 #include "ImageDownloader/Downloaders/HMWMS.h"
+#include "ImageDownloader/Downloaders/HMCreateSeabed.h"
 
 #include "ImageDownloader/Transformers/HMSwissALTI3DRenamer.h"
 #include "ImageDownloader/Transformers/HMLitto3DGuadeloupeRenamer.h"
@@ -488,6 +489,11 @@ HMFetcher* UImageDownloader::CreateFetcher(
 	if (bEnsureOneBand && IsWMS())
 	{
 		Result = Result->AndThen(new HMDebugFetcher("EnsureOneBand", new HMEnsureOneBand()));
+	}
+	if (bCreateSeabed)
+	{
+		Result = Result->AndThen(new HMDebugFetcher("CreateSeabed",
+			new HMCreateSeabed(Name, SeabedMaxDepthMeters, SeabedShoreTransitionPixels)));
 	}
 
 	if (GlobalCoordinates)

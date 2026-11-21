@@ -798,6 +798,18 @@ public:
 		meta = (EditCondition = "bScaleResolution", EditConditionHides, DisplayPriority = "22"))
 	EGDALResamplingMethod ScaleResamplingMethod = EGDALResamplingMethod::Nearest;
 
+	/** Replace valid elevations at or below zero metres with a sloping seabed. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Seabed")
+	bool bCreateSeabed = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Seabed",
+		meta = (EditCondition = "bCreateSeabed", EditConditionHides, ClampMin = "0.01"))
+	double SeabedMaxDepthMeters = 20.0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Seabed",
+		meta = (EditCondition = "bCreateSeabed", EditConditionHides, ClampMin = "1"))
+	int32 SeabedShoreTransitionPixels = 20;
+
 	/**********************
 	 * Adapt to Landscape *
 	 **********************/
